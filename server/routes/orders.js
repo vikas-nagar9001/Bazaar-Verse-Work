@@ -74,7 +74,7 @@ router.post('/request', async (req, res) => {
         const { employeeId, employeeName } = req.body;
 
         // Call NumeraSMS API
-        const url = `${API_BASE_URL}?api_key=${API_KEY}&action=getNumber&operator=9&service=tpgs&country=4&maxPrice=37`;
+        const url = `${API_BASE_URL}?api_key=${API_KEY}&action=getNumber&operator=9&service=tpgs&country=22&maxPrice=44`;
         
         const response = await axios.get(url);
         const data = response.data;
