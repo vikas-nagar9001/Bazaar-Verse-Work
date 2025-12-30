@@ -1,24 +1,25 @@
 // API Configuration
 const API_CONFIG = {
     // Change this to your server URL
-    BASE_URL: 'http://localhost:3000/api',
-    
+    // BASE_URL: 'http://localhost:3000/api',
+    BASE_URL: 'https://bazaar-verse-work.onrender.com/api',
+
     // API Endpoints
     endpoints: {
         // Auth
         employeeLogin: '/auth/employee/login',
         adminLogin: '/auth/admin/login',
-        
+
         // Employees
         employees: '/employees',
-        
+
         // Orders
         orders: '/orders',
         requestNumber: '/orders/request',
         checkSMS: '/orders/check-sms',
         cancelOrder: '/orders/cancel',
         activeOrder: '/orders/active',
-        
+
         // Admin
         stats: '/admin/stats',
         employeeStats: '/admin/employee-stats',

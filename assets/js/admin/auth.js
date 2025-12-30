@@ -1,5 +1,7 @@
 // Admin Authentication
-const API_BASE_URL = 'http://localhost:3000/api';
+// const API_BASE_URL = 'http://localhost:3000/api';
+
+const API_BASE_URL = 'https://bazaar-verse-work.onrender.com/api';
 
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('admin-login-form');
