@@ -35,12 +35,29 @@ app.use('/api/employees', employeeRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Health Check
+// Health Check Endpoint for Uptime Robot
 app.get('/api/health', (req, res) => {
-    res.json({ 
+    const dbConnected = mongoose.connection.readyState === 1;
+    
+    // Return 503 if database is not connected
+    if (!dbConnected) {
+        return res.status(503).json({ 
+            status: 'ERROR',
+            message: 'Database connection lost',
+            timestamp: new Date().toISOString(),
+            database: 'Disconnected',
+            uptime: process.uptime()
+        });
+    }
+    
+    // Return 200 OK if everything is healthy
+    res.status(200).json({ 
         status: 'OK', 
         message: 'Server is running',
-        database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'
+        timestamp: new Date().toISOString(),
+        database: 'Connected',
+        uptime: process.uptime(),
+        environment: process.env.NODE_ENV || 'development'
     });
 });
 
