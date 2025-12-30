@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en" x-data="{ darkMode: false, sidebarOpen: false }" :class="{ 'dark': darkMode }">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Number Service</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/dark-mode.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900">
+    <div class="flex h-screen">
+        <!-- Mobile sidebar backdrop -->
+        <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 z-10 bg-black bg-opacity-50 md:hidden" x-cloak></div>
+        
+        <!-- Sidebar -->
+        <aside class="z-20 flex-shrink-0 w-64 overflow-y-auto bg-white dark:bg-gray-800 md:block fixed md:relative inset-y-0 left-0 transform transition-transform duration-200 ease-in-out" :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'">
+            <div class="py-4 text-gray-500 dark:text-gray-400">
+                <a class="ml-6 text-lg font-bold text-gray-800 dark:text-gray-200" href="index.html">
+                    Admin Panel
+                </a>
+                <ul class="mt-6">
+                    <li class="relative px-6 py-3">
+                        <span class="absolute inset-y-0 left-0 w-1 bg-purple-600 rounded-tr-lg rounded-br-lg"></span>
+                        <a class="inline-flex items-center w-full text-sm font-semibold text-gray-800 transition-colors duration-150 hover:text-gray-800 dark:hover:text-gray-200 dark:text-gray-100" href="index.html">
+                            <span class="ml-4">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="relative px-6 py-3">
+                        <a class="inline-flex items-center w-full text-sm font-semibold transition-colors duration-150 hover:text-gray-800 dark:hover:text-gray-200" href="employees.html">
+                            <span class="ml-4">Manage Employees</span>
+                        </a>
+                    </li>
+                    <li class="relative px-6 py-3">
+                        <a class="inline-flex items-center w-full text-sm font-semibold transition-colors duration-150 hover:text-gray-800 dark:hover:text-gray-200" href="employee-stats.html">
+                            <span class="ml-4">Employee Stats</span>
+                        </a>
+                    </li>
+                    <li class="relative px-6 py-3">
+                        <a class="inline-flex items-center w-full text-sm font-semibold transition-colors duration-150 hover:text-gray-800 dark:hover:text-gray-200" href="all-orders.html">
+                            <span class="ml-4">All Orders</span>
+                        </a>
+                    </li>
+                    <li class="relative px-6 py-3">
+                        <button onclick="adminLogout()" class="inline-flex items-center w-full text-sm font-semibold transition-colors duration-150 hover:text-gray-800 dark:hover:text-gray-200">
+                            <span class="ml-4">Logout</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <div class="flex flex-col flex-1 w-full">
+            <!-- Header -->
+            <header class="z-10 py-4 bg-white shadow-md dark:bg-gray-800">
+                <div class="container flex items-center justify-between h-full px-3 sm:px-6 mx-auto text-purple-600 dark:text-purple-300">
+                    <div class="flex items-center gap-3">
+                        <!-- Mobile menu button -->
+                        <button @click="sidebarOpen = !sidebarOpen" class="p-2 -ml-2 rounded-md md:hidden hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <svg class="w-6 h-6 text-gray-700 dark:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                        </button>
+                        <h2 class="text-lg sm:text-2xl font-semibold text-gray-700 dark:text-gray-200">Admin Dashboard</h2>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate max-w-[120px] sm:max-w-none">Welcome, Admin</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main -->
+            <main class="h-full overflow-y-auto">
+                <div class="container px-6 mx-auto grid">
+                    <h2 class="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200">
+                        Overall Statistics
+                    </h2>
+
+                    <!-- Today's Stats -->
+                    <h3 class="mb-4 text-lg font-semibold text-gray-600 dark:text-gray-300">Today</h3>
+                    <div class="grid gap-6 mb-8 md:grid-cols-2 xl:grid-cols-4">
+                        <div class="flex items-center p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800">
+                            <div class="p-3 mr-4 text-orange-500 bg-orange-100 rounded-full dark:text-orange-100 dark:bg-orange-500">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">Orders Today</p>
+                                <p class="text-lg font-semibold text-gray-700 dark:text-gray-200" id="today-orders">0</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800">
+                            <div class="p-3 mr-4 text-green-500 bg-green-100 rounded-full dark:text-green-100 dark:bg-green-500">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">Completed Today</p>
+                                <p class="text-lg font-semibold text-gray-700 dark:text-gray-200" id="today-completed">0</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800">
+                            <div class="p-3 mr-4 text-blue-500 bg-blue-100 rounded-full dark:text-blue-100 dark:bg-blue-500">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
+                                    <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">Pending Today</p>
+                                <p class="text-lg font-semibold text-gray-700 dark:text-gray-200" id="today-pending">0</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800">
+                            <div class="p-3 mr-4 text-red-500 bg-red-100 rounded-full dark:text-red-100 dark:bg-red-500">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">Cancelled Today</p>
+                                <p class="text-lg font-semibold text-gray-700 dark:text-gray-200" id="today-cancelled">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Stats -->
+                    <h3 class="mb-4 text-lg font-semibold text-gray-600 dark:text-gray-300">This Month</h3>
+                    <div class="grid gap-6 mb-8 md:grid-cols-2 xl:grid-cols-4">
+                        <div class="flex items-center p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800">
+                            <div>
+                                <p class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">Total Orders</p>
+                                <p class="text-lg font-semibold text-gray-700 dark:text-gray-200" id="month-orders">0</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800">
+                            <div>
+                                <p class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">Completed</p>
+                                <p class="text-lg font-semibold text-green-700 dark:text-green-400" id="month-completed">0</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800">
+                            <div>
+                                <p class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">Pending</p>
+                                <p class="text-lg font-semibold text-blue-700 dark:text-blue-400" id="month-pending">0</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800">
+                            <div>
+                                <p class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">Cancelled</p>
+                                <p class="text-lg font-semibold text-red-700 dark:text-red-400" id="month-cancelled">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- All Time Stats -->
+                    <h3 class="mb-4 text-lg font-semibold text-gray-600 dark:text-gray-300">All Time</h3>
+                    <div class="grid gap-6 mb-8 md:grid-cols-2 xl:grid-cols-4">
+                        <div class="flex items-center p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800">
+                            <div>
+                                <p class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">Total Orders</p>
+                                <p class="text-lg font-semibold text-gray-700 dark:text-gray-200" id="all-orders">0</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800">
+                            <div>
+                                <p class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">Total Employees</p>
+                                <p class="text-lg font-semibold text-gray-700 dark:text-gray-200" id="all-employees">0</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800">
+                            <div>
+                                <p class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">Success Rate</p>
+                                <p class="text-lg font-semibold text-gray-700 dark:text-gray-200" id="success-rate">0%</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800">
+                            <div>
+                                <p class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">Active Employees</p>
+                                <p class="text-lg font-semibold text-gray-700 dark:text-gray-200" id="active-employees">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top Performers Today -->
+                    <h3 class="mb-4 text-lg font-semibold text-gray-600 dark:text-gray-300">Top Performers Today</h3>
+                    <div class="w-full mb-8 overflow-hidden rounded-lg shadow-xs">
+                        <div class="w-full overflow-x-auto">
+                            <table class="w-full whitespace-no-wrap">
+                                <thead>
+                                    <tr class="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800">
+                                        <th class="px-4 py-3">Employee</th>
+                                        <th class="px-4 py-3">Orders Today</th>
+                                        <th class="px-4 py-3">Completed</th>
+                                        <th class="px-4 py-3">Success Rate</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="top-performers" class="bg-white divide-y dark:divide-gray-700 dark:bg-gray-800">
+                                    <tr>
+                                        <td colspan="4" class="px-4 py-3 text-sm text-center text-gray-500 dark:text-gray-400">
+                                            No data available
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="../assets/js/admin/auth.js"></script>
+    <script src="../assets/js/admin/dashboard.js"></script>
+</body>
+</html>
