@@ -52,7 +52,8 @@ router.get('/active/:employeeId', async (req, res) => {
         const { employeeId } = req.params;
         const activeOrders = await Order.find({ 
             employeeId, 
-            status: 'pending' 
+            status: { $in: ['pending', 'completed'] },
+            dismissed: { $ne: true }
         }).sort({ createdAt: -1 });
 
         res.json({ 
@@ -224,6 +225,38 @@ router.post('/cancel/:orderId', async (req, res) => {
         res.status(500).json({ 
             success: false, 
             message: 'Error cancelling order', 
+            error: error.message 
+        });
+    }
+});
+
+// Dismiss completed order
+router.post('/dismiss/:orderId', async (req, res) => {
+    try {
+        const { orderId } = req.params;
+
+        // Find order in database
+        const order = await Order.findOne({ orderId });
+        if (!order) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Order not found' 
+            });
+        }
+
+        // Mark as dismissed
+        order.dismissed = true;
+        await order.save();
+
+        res.json({
+            success: true,
+            message: 'Order dismissed successfully',
+            order
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error dismissing order', 
             error: error.message 
         });
     }

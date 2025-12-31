@@ -1,6 +1,5 @@
 // Employee Authentication
-// const API_BASE_URL = 'http://localhost:3000/api';
-const API_BASE_URL = 'https://bazaar-verse-work.onrender.com/api';
+const API_BASE_URL = API_CONFIG.BASE_URL;
 
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('login-form');
@@ -10,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check if already logged in
     const currentEmployee = localStorage.getItem('currentEmployee');
     if (currentEmployee && window.location.pathname.includes('login.html')) {
-        window.location.href = 'index.html';
+        window.location.href = '/employee/index.html';
     }
 
     // Login form submission
@@ -37,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     localStorage.setItem('currentEmployee', JSON.stringify(data.employee));
                     
                     // Redirect to dashboard
-                    window.location.href = 'index.html';
+                    window.location.href = '/employee/index.html';
                 } else {
                     showError(data.message || 'Invalid username or password, or account is inactive.');
                 }
@@ -61,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
 async function checkAuth() {
     const currentEmployee = localStorage.getItem('currentEmployee');
     if (!currentEmployee && !window.location.pathname.includes('login.html')) {
-        window.location.href = 'login.html';
+        window.location.href = '/employee/login.html';
         return null;
     }
     
@@ -94,5 +93,5 @@ async function checkAuth() {
 // Logout function
 function logout() {
     localStorage.removeItem('currentEmployee');
-    window.location.href = 'login.html';
+    window.location.href = '/employee/login.html';
 }

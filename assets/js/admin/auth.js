@@ -1,7 +1,5 @@
 // Admin Authentication
-// const API_BASE_URL = 'http://localhost:3000/api';
-
-const API_BASE_URL = 'https://bazaar-verse-work.onrender.com/api';
+const API_BASE_URL = API_CONFIG.BASE_URL;
 
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('admin-login-form');
@@ -11,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check if already logged in
     const currentAdmin = localStorage.getItem('currentAdmin');
     if (currentAdmin && window.location.pathname.includes('login.html')) {
-        window.location.href = 'index.html';
+        window.location.href = '/admin/index.html';
     }
 
     // Login form submission
@@ -41,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }));
                     
                     // Redirect to admin dashboard
-                    window.location.href = 'index.html';
+                    window.location.href = '/admin/index.html';
                 } else {
                     showError(data.message || 'Invalid admin credentials.');
                 }
@@ -65,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function checkAdminAuth() {
     const currentAdmin = localStorage.getItem('currentAdmin');
     if (!currentAdmin && !window.location.pathname.includes('login.html')) {
-        window.location.href = 'login.html';
+        window.location.href = '/admin/login.html';
     }
     return currentAdmin ? JSON.parse(currentAdmin) : null;
 }
@@ -73,5 +71,5 @@ function checkAdminAuth() {
 // Admin logout function
 function adminLogout() {
     localStorage.removeItem('currentAdmin');
-    window.location.href = 'login.html';
+    window.location.href = '/admin/login.html';
 }

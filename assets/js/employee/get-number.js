@@ -117,10 +117,15 @@ function toggleAutoBuy() {
         // Move slider to right
         slider.style.transform = window.innerWidth >= 640 ? 'translateX(1.75rem)' : 'translateX(1.25rem)';
         
-        showToast('info', '🤖 Auto-buy enabled - Will retry every 3 seconds');
-        
-        // Start the auto-buy process
+        // Start the auto-buy process immediately
         performAutoBuy();
+        
+        // Set up interval to retry every 3 seconds
+        autoBuyInterval = setInterval(() => {
+            if (autoBuyEnabled) {
+                performAutoBuy();
+            }
+        }, 3000);
     } else {
         // Stop auto-buy
         toggle.checked = false;
@@ -179,21 +184,24 @@ async function performAutoBuy() {
             toggleAutoBuy();
             showToast('info', '✓ Auto-buy stopped - Number assigned!');
         } else {
-            // Only retry if the error is NO_NUMBERS
-            if (data.message && data.message.includes('NO_NUMBERS')) {
-                // Wait 3 seconds and retry
-                setTimeout(() => performAutoBuy(), 3000);
+            // Only continue auto-buy for "no numbers available" error
+            // Stop for other errors like NO_BALANCE, API errors, etc.
+            const errorMsg = data.message || 'Failed to get number';
+            
+            if (errorMsg.toLowerCase().includes('no numbers') || errorMsg.includes('NO_NUMBERS')) {
+                // Continue trying for no numbers error
+                console.log('Auto-buy retry: ' + errorMsg);
             } else {
                 // Stop auto-buy for other errors
                 toggleAutoBuy();
-                showToast('error', data.message || 'Failed to get number');
+                showToast('error', `⚠️ Auto-buy stopped: ${errorMsg}`);
             }
         }
     } catch (error) {
         // Stop auto-buy on connection errors
         toggleAutoBuy();
-        showToast('error', 'Connection failed. Please check your internet connection.');
-        console.error('Error:', error);
+        showToast('error', '⚠️ Auto-buy stopped: Connection failed');
+        console.error('Auto-buy connection error:', error);
     } finally {
         setButtonLoading(btn, false, '🚀 Get India Number Now');
     }
@@ -221,6 +229,8 @@ async function checkSMS(orderId = null, showButton = false) {
                         showToast('success', `✓ SMS Received! Code: ${data.smsCode}`, 8000);
                         playNotificationSound();
                         highlightOrder(order.orderId);
+                        // Restart timer for completed order (20 min countdown for auto-dismiss)
+                        startTimer(order.orderId, order.createdAt || data.order.createdAt, true);
                     }
                 } else if (data.order && data.order.status === 'cancelled') {
                     activeOrders = activeOrders.filter(o => o.orderId !== order.orderId);
@@ -355,24 +365,28 @@ function displayActiveNumbers() {
                 <div class="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
                     <div class="flex items-center gap-1 text-sm font-semibold ${isCompleted ? 'text-green-600' : 'text-orange-600'}">
                         <span>⏱</span>
-                        <span class="timer-display" id="timer-${orderId}">${isCompleted ? 'Completed' : '20:00'}</span>
+                        <span class="timer-display" id="timer-${orderId}">${isCompleted ? '20:00' : '20:00'}</span>
                     </div>
-                    <button onclick="cancelNumber('${orderId}')" class="cancel-btn px-3 py-1.5 text-xs font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900 rounded transition-colors">
-                        ✕ Cancel
-                    </button>
+                    ${isCompleted ? `
+                        <button onclick="dismissNumber('${orderId}')" class="dismiss-btn px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors">
+                            ✓ Dismiss
+                        </button>
+                    ` : `
+                        <button onclick="cancelNumber('${orderId}')" class="cancel-btn px-3 py-1.5 text-xs font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900 rounded transition-colors">
+                            ✕ Cancel
+                        </button>
+                    `}
                 </div>
             </div>
         `;
     }).join('');
 
     activeOrders.forEach(order => {
-        if (order.status === 'pending' && !order.smsCode) {
-            startTimer(order.orderId, order.createdAt || order.date);
-        }
+        startTimer(order.orderId, order.createdAt || order.date, order.status === 'completed' || order.smsCode);
     });
 }
 
-function startTimer(orderId, createdAt) {
+function startTimer(orderId, createdAt, isCompleted = false) {
     if (timerIntervals[orderId]) clearInterval(timerIntervals[orderId]);
 
     const updateTimer = () => {
@@ -387,15 +401,25 @@ function startTimer(orderId, createdAt) {
         if (timerElement && !timerElement.classList.contains('timer-display')) return;
         if (timerElement) {
             timerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-            timerElement.classList.remove('text-blue-600', 'text-yellow-600', 'text-red-600', 'dark:text-blue-400', 'dark:text-yellow-400', 'dark:text-red-400');
+            timerElement.classList.remove('text-blue-600', 'text-yellow-600', 'text-red-600', 'text-green-600', 'dark:text-blue-400', 'dark:text-yellow-400', 'dark:text-red-400', 'dark:text-green-400');
             
             if (remaining === 0) {
                 timerElement.textContent = 'EXPIRED';
                 timerElement.classList.add('text-red-600', 'dark:text-red-400', 'animate-pulse');
                 clearInterval(timerIntervals[orderId]);
                 delete timerIntervals[orderId];
-                showToast('warning', `Order #${orderId} has expired`);
-                setTimeout(() => cancelExpiredOrder(orderId), 2000);
+                
+                if (isCompleted) {
+                    // Auto-dismiss completed order after 20 min
+                    showToast('info', `Completed order auto-dismissed`);
+                    setTimeout(() => dismissNumber(orderId), 1000);
+                } else {
+                    // Auto-cancel pending order after 20 min (no OTP)
+                    showToast('warning', `Order expired - No OTP received`);
+                    setTimeout(() => cancelExpiredOrder(orderId), 2000);
+                }
+            } else if (isCompleted) {
+                timerElement.classList.add('text-green-600', 'dark:text-green-400');
             } else if (remaining <= 60) {
                 timerElement.classList.add('text-red-600', 'dark:text-red-400', 'animate-pulse');
             } else if (remaining <= 300) {
@@ -412,9 +436,53 @@ function startTimer(orderId, createdAt) {
     timerIntervals[orderId] = setInterval(updateTimer, 1000);
 }
 
+async function dismissNumber(orderId) {
+    const btn = document.querySelector(`#order-${orderId} .dismiss-btn`);
+    if (btn) setButtonLoading(btn, true, 'Dismissing...');
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/orders/dismiss/${orderId}`, { method: 'POST' });
+        const data = await response.json();
+        
+        if (data.success) {
+            // Clean up timer
+            if (timerIntervals[orderId]) {
+                clearInterval(timerIntervals[orderId]);
+                delete timerIntervals[orderId];
+            }
+            
+            // Smooth remove animation
+            const orderElement = document.getElementById(`order-${orderId}`);
+            if (orderElement) {
+                orderElement.style.opacity = '0';
+                orderElement.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    activeOrders = activeOrders.filter(o => o.orderId !== orderId);
+                    displayActiveNumbers();
+                }, 300);
+            } else {
+                activeOrders = activeOrders.filter(o => o.orderId !== orderId);
+                displayActiveNumbers();
+            }
+            showToast('success', '✓ Number dismissed');
+        } else {
+            showToast('error', data.message || 'Failed to dismiss order');
+            if (btn) setButtonLoading(btn, false, '✓ Dismiss');
+        }
+    } catch (error) {
+        console.error('Error dismissing order:', error);
+        showToast('error', 'Failed to dismiss. Please try again.');
+        if (btn) setButtonLoading(btn, false, '✓ Dismiss');
+    }
+}
+
 async function cancelExpiredOrder(orderId) {
     try {
         await fetch(`${API_BASE_URL}/orders/cancel/${orderId}`, { method: 'POST' });
+        if (timerIntervals[orderId]) {
+            clearInterval(timerIntervals[orderId]);
+            delete timerIntervals[orderId];
+        }
         activeOrders = activeOrders.filter(o => o.orderId !== orderId);
         displayActiveNumbers();
     } catch (error) {
@@ -541,9 +609,17 @@ function playSuccessSound() {
 
 function playNotificationSound() {
     try {
+        // Play a more noticeable notification sound for SMS received
         const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLaiTcIGWi77eefTRAMUKfj8LZjHAY4ktfyy3ksBSR3x/DdkEAKFF606OumUxQKRp/g8r5sIQUrgs7y2ok3CBlou+3nn00QDFC');
-        audio.volume = 0.5;
+        audio.volume = 0.8; // Louder for notification
         audio.play().catch(() => {});
+        
+        // Play twice for emphasis
+        setTimeout(() => {
+            const audio2 = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLaiTcIGWi77eefTRAMUKfj8LZjHAY4ktfyy3ksBSR3x/DdkEAKFF606OumUxQKRp/g8r5sIQUrgs7y2ok3CBlou+3nn00QDFC');
+            audio2.volume = 0.8;
+            audio2.play().catch(() => {});
+        }, 200);
     } catch (e) {}
 }
 
