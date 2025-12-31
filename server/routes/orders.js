@@ -118,10 +118,16 @@ router.post('/request', async (req, res) => {
             });
         }
     } catch (error) {
+        console.error('❌ Error in /request endpoint:', {
+            message: error.message,
+            url: `${API_BASE_URL}?api_key=${API_KEY ? '[SET]' : '[MISSING]'}&action=getNumber...`,
+            stack: error.stack
+        });
         res.status(500).json({ 
             success: false, 
             message: 'Error requesting number', 
-            error: error.message 
+            error: error.message,
+            details: error.response?.data || 'No response data'
         });
     }
 });
@@ -178,10 +184,16 @@ router.get('/check-sms/:orderId', async (req, res) => {
             });
         }
     } catch (error) {
+        console.error('❌ Error in /check-sms endpoint:', {
+            message: error.message,
+            orderId: req.params.orderId,
+            stack: error.stack
+        });
         res.status(500).json({ 
             success: false, 
             message: 'Error checking SMS', 
-            error: error.message 
+            error: error.message,
+            details: error.response?.data || 'No response data'
         });
     }
 });
@@ -222,10 +234,16 @@ router.post('/cancel/:orderId', async (req, res) => {
             });
         }
     } catch (error) {
+        console.error('❌ Error in /cancel endpoint:', {
+            message: error.message,
+            orderId: req.params.orderId,
+            stack: error.stack
+        });
         res.status(500).json({ 
             success: false, 
             message: 'Error cancelling order', 
-            error: error.message 
+            error: error.message,
+            details: error.response?.data || 'No response data'
         });
     }
 });
