@@ -1,8 +1,8 @@
 // API Configuration
 const API_CONFIG = {
     // Change this to your server URL
-    BASE_URL: 'http://localhost:3000/api',
-    // BASE_URL: 'https://bazaar-verse-work.onrender.com/api',
+    // BASE_URL: 'http://localhost:3000/api',
+    BASE_URL: 'https://bazaar-verse-work.onrender.com/api',
 
     // API Endpoints
     endpoints: {
