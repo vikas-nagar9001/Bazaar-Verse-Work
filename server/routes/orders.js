@@ -18,7 +18,7 @@ let browserInstance = null;
 // Get or create browser instance
 async function getBrowser() {
     if (!browserInstance || !(await browserInstance.isConnected())) {
-        browserInstance = await puppeteer.launch({
+        const launchOptions = {
             headless: true,
             args: [
                 '--no-sandbox',
@@ -29,7 +29,14 @@ async function getBrowser() {
                 '--no-zygote',
                 '--disable-gpu'
             ]
-        });
+        };
+        
+        // Set explicit executable path for production environments
+        if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+            launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+        }
+        
+        browserInstance = await puppeteer.launch(launchOptions);
     }
     return browserInstance;
 }
