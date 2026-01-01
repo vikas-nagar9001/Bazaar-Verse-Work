@@ -5,7 +5,7 @@ const API_CONFIG = {
     BASE_URL: 'https://bazaar-verse-work.onrender.com/api',
 
     // API Endpoints
-    endpoints: {
+    endpoints: {                    
         // Auth
         employeeLogin: '/auth/employee/login',
         adminLogin: '/auth/admin/login',
@@ -30,4 +30,13 @@ const API_CONFIG = {
 // Helper function to build full URL
 function getApiUrl(endpoint) {
     return API_CONFIG.BASE_URL + API_CONFIG.endpoints[endpoint];
+}
+
+// Helper function for fetch with ngrok header
+function apiFetch(url, options = {}) {
+    const headers = {
+        'ngrok-skip-browser-warning': 'true',
+        ...options.headers
+    };
+    return fetch(url, { ...options, headers });
 }

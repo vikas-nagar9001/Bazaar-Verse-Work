@@ -15,7 +15,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function loadEmployees() {
     try {
-        const response = await fetch(`${API_BASE_URL}/employees`);
+        const response = await fetch(`${API_BASE_URL}/employees`, {
+            headers: { 'ngrok-skip-browser-warning': 'true' }
+        });
         const data = await response.json();
         
         if (!data.success) {
@@ -140,7 +142,8 @@ async function deleteEmployee(employeeId) {
 
     try {
         const response = await fetch(`${API_BASE_URL}/employees/${employeeId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: { 'ngrok-skip-browser-warning': 'true' }
         });
 
         const data = await response.json();

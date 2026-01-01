@@ -2,10 +2,31 @@ const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
 const axios = require('axios');
+const cloudscraper = require('cloudscraper');
+const mongoose = require('mongoose');
 
 // API Configuration from environment variables
 const API_KEY = process.env.NUMERASMS_API_KEY;
 const API_BASE_URL = process.env.NUMERASMS_API_URL;
+
+// Cloudscraper wrapper for Numera API calls
+const numeraAPICall = async (url) => {
+    return await cloudscraper.get(url, {
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Sec-Fetch-User': '?1',
+            'Cache-Control': 'max-age=0'
+        }
+    });
+};
 
 // Get all orders (with optional filters)
 router.get('/', async (req, res) => {
@@ -77,8 +98,8 @@ router.post('/request', async (req, res) => {
         // Call NumeraSMS API
         const url = `${API_BASE_URL}?api_key=${API_KEY}&action=getNumber&operator=9&service=tpgs&country=22&maxPrice=44`;
         
-        const response = await axios.get(url);
-        const data = response.data;
+        const response = await numeraAPICall(url);
+        const data = response;
 
         if (data.startsWith('ACCESS_NUMBER')) {
             // Parse response: ACCESS_NUMBER:orderId:phoneNumber
@@ -86,11 +107,11 @@ router.post('/request', async (req, res) => {
             const orderId = parts[1];
             const phoneNumber = parts[2];
 
-            // Create order in database
+            // Create order in database - ensure employeeId is ObjectId
             const order = await Order.create({
                 orderId,
                 phoneNumber,
-                employeeId,
+                employeeId: new mongoose.Types.ObjectId(employeeId),
                 employeeName,
                 status: 'pending',
                 smsCode: null,
@@ -148,8 +169,8 @@ router.get('/check-sms/:orderId', async (req, res) => {
 
         // Call NumeraSMS API to check SMS
         const url = `${API_BASE_URL}?api_key=${API_KEY}&action=getStatus&id=${orderId}`;
-        const response = await axios.get(url);
-        const data = response.data;
+        const response = await numeraAPICall(url);
+        const data = response;
 
         if (data.startsWith('STATUS_OK')) {
             // Parse response: STATUS_OK:smsCode
@@ -214,8 +235,8 @@ router.post('/cancel/:orderId', async (req, res) => {
 
         // Call NumeraSMS API to cancel
         const url = `${API_BASE_URL}?api_key=${API_KEY}&action=setStatus&status=8&id=${orderId}`;
-        const response = await axios.get(url);
-        const data = response.data;
+        const response = await numeraAPICall(url);
+        const data = response;
 
         if (data === 'ACCESS_CANCEL' || data === 'ACCESS_CANCEL_ALREADY') {
             // Update order in database

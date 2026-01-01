@@ -16,7 +16,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function populateEmployeeFilter() {
     try {
-        const response = await fetch(`${API_BASE_URL}/employees`);
+        const response = await fetch(`${API_BASE_URL}/employees`, {
+            headers: { 'ngrok-skip-browser-warning': 'true' }
+        });
         const data = await response.json();
         
         if (data.success) {
@@ -35,7 +37,9 @@ async function populateEmployeeFilter() {
 
 async function loadOrders() {
     try {
-        const response = await fetch(`${API_BASE_URL}/orders`);
+        const response = await fetch(`${API_BASE_URL}/orders`, {
+            headers: { 'ngrok-skip-browser-warning': 'true' }
+        });
         const data = await response.json();
         
         if (!data.success) {

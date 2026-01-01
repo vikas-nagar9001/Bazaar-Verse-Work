@@ -11,7 +11,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function loadStatistics() {
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/stats`);
+        const response = await fetch(`${API_BASE_URL}/admin/stats`, {
+            headers: { 'ngrok-skip-browser-warning': 'true' }
+        });
         const data = await response.json();
         
         if (!data.success) {
