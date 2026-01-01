@@ -1,31 +1,66 @@
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
-const axios = require('axios');
-const cloudscraper = require('cloudscraper');
 const mongoose = require('mongoose');
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+
+// Use stealth plugin to avoid detection
+puppeteer.use(StealthPlugin());
 
 // API Configuration from environment variables
 const API_KEY = process.env.NUMERASMS_API_KEY;
 const API_BASE_URL = process.env.NUMERASMS_API_URL;
 
-// Cloudscraper wrapper for Numera API calls
+// Puppeteer browser instance (reuse to save resources)
+let browserInstance = null;
+
+// Get or create browser instance
+async function getBrowser() {
+    if (!browserInstance || !(await browserInstance.isConnected())) {
+        browserInstance = await puppeteer.launch({
+            headless: true,
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-accelerated-2d-canvas',
+                '--no-first-run',
+                '--no-zygote',
+                '--disable-gpu'
+            ]
+        });
+    }
+    return browserInstance;
+}
+
+// Puppeteer wrapper for Numera API calls (bypasses Cloudflare)
 const numeraAPICall = async (url) => {
-    return await cloudscraper.get(url, {
-        headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'none',
-            'Sec-Fetch-User': '?1',
-            'Cache-Control': 'max-age=0'
-        }
-    });
+    const browser = await getBrowser();
+    const page = await browser.newPage();
+    
+    try {
+        // Set realistic viewport
+        await page.setViewport({ width: 1920, height: 1080 });
+        
+        // Navigate to the API URL
+        await page.goto(url, { 
+            waitUntil: 'networkidle2',
+            timeout: 30000 
+        });
+        
+        // Wait a bit for any JS to execute
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Get the response text
+        const responseText = await page.evaluate(() => document.body.innerText);
+        
+        await page.close();
+        return responseText;
+    } catch (error) {
+        await page.close();
+        throw error;
+    }
 };
 
 // Get all orders (with optional filters)
