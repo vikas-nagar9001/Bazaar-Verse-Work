@@ -2,11 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
 const mongoose = require('mongoose');
-const puppeteer = require('puppeteer-extra');
-const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-
-// Use stealth plugin to avoid detection
-puppeteer.use(StealthPlugin());
+const puppeteer = require('puppeteer-core');
+const chromium = require('@sparticuz/chromium');
 
 // API Configuration from environment variables
 const API_KEY = process.env.NUMERASMS_API_KEY;
@@ -18,43 +15,12 @@ let browserInstance = null;
 // Get or create browser instance
 async function getBrowser() {
     if (!browserInstance || !(await browserInstance.isConnected())) {
-        const launchOptions = {
-            headless: true,
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-accelerated-2d-canvas',
-                '--no-first-run',
-                '--no-zygote',
-                '--disable-gpu',
-                '--single-process',
-                '--disable-extensions'
-            ]
-        };
-        
-        // Try to use system Chrome or set explicit path
-        if (process.env.PUPPETEER_EXECUTABLE_PATH) {
-            launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
-        } else if (process.env.NODE_ENV === 'production') {
-            // On Render, try common Chrome locations
-            const possiblePaths = [
-                '/usr/bin/google-chrome-stable',
-                '/usr/bin/google-chrome',
-                '/usr/bin/chromium-browser',
-                '/usr/bin/chromium'
-            ];
-            const fs = require('fs');
-            for (const path of possiblePaths) {
-                if (fs.existsSync(path)) {
-                    launchOptions.executablePath = path;
-                    console.log(`✅ Using Chrome at: ${path}`);
-                    break;
-                }
-            }
-        }
-        
-        browserInstance = await puppeteer.launch(launchOptions);
+        browserInstance = await puppeteer.launch({
+            args: chromium.args,
+            defaultViewport: chromium.defaultViewport,
+            executablePath: await chromium.executablePath(),
+            headless: chromium.headless,
+        });
     }
     return browserInstance;
 }
