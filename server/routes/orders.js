@@ -27,13 +27,31 @@ async function getBrowser() {
                 '--disable-accelerated-2d-canvas',
                 '--no-first-run',
                 '--no-zygote',
-                '--disable-gpu'
+                '--disable-gpu',
+                '--single-process',
+                '--disable-extensions'
             ]
         };
         
-        // Set explicit executable path for production environments
+        // Try to use system Chrome or set explicit path
         if (process.env.PUPPETEER_EXECUTABLE_PATH) {
             launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+        } else if (process.env.NODE_ENV === 'production') {
+            // On Render, try common Chrome locations
+            const possiblePaths = [
+                '/usr/bin/google-chrome-stable',
+                '/usr/bin/google-chrome',
+                '/usr/bin/chromium-browser',
+                '/usr/bin/chromium'
+            ];
+            const fs = require('fs');
+            for (const path of possiblePaths) {
+                if (fs.existsSync(path)) {
+                    launchOptions.executablePath = path;
+                    console.log(`✅ Using Chrome at: ${path}`);
+                    break;
+                }
+            }
         }
         
         browserInstance = await puppeteer.launch(launchOptions);
