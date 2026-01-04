@@ -24,7 +24,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const response = await fetch(`${API_BASE_URL}/auth/admin/login`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
                     },
                     body: JSON.stringify({ username, password })
                 });

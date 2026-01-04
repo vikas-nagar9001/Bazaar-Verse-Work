@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
 const axios = require('axios');
+const mongoose = require('mongoose');
 
 // API Configuration from environment variables
 const API_KEY = process.env.NUMERASMS_API_KEY;
@@ -78,7 +79,7 @@ router.post('/request', async (req, res) => {
         const url = `${API_BASE_URL}?api_key=${API_KEY}&action=getNumber&operator=9&service=tpgs&country=22&maxPrice=44`;
         
         const response = await axios.get(url);
-        const data = response.data;
+        const data = response.data; 
 
         if (data.startsWith('ACCESS_NUMBER')) {
             // Parse response: ACCESS_NUMBER:orderId:phoneNumber
@@ -86,11 +87,11 @@ router.post('/request', async (req, res) => {
             const orderId = parts[1];
             const phoneNumber = parts[2];
 
-            // Create order in database
+            // Create order in database - ensure employeeId is ObjectId
             const order = await Order.create({
                 orderId,
                 phoneNumber,
-                employeeId,
+                employeeId: new mongoose.Types.ObjectId(employeeId),
                 employeeName,
                 status: 'pending',
                 smsCode: null,

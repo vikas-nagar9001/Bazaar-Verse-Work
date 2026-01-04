@@ -17,7 +17,11 @@ function filterStats() {
 
 async function loadEmployeeStats() {
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/employee-stats?period=${currentPeriod}`);
+        const response = await fetch(`${API_BASE_URL}/admin/employee-stats?period=${currentPeriod}`, {
+            headers: {
+                'ngrok-skip-browser-warning': 'true'
+            }
+        });
         const data = await response.json();
         
         if (!data.success) {

@@ -2,7 +2,8 @@
 const API_CONFIG = {
     // Change this to your server URL
     // BASE_URL: 'http://localhost:3000/api',
-    BASE_URL: 'https://bazaar-verse-work.onrender.com/api',
+    // BASE_URL: 'https://locally-secure-chamois.ngrok-free.app/api',
+    BASE_URL: 'https://n2hz3nb5-3000.inc1.devtunnels.ms/api',
 
     // API Endpoints
     endpoints: {
@@ -30,4 +31,13 @@ const API_CONFIG = {
 // Helper function to build full URL
 function getApiUrl(endpoint) {
     return API_CONFIG.BASE_URL + API_CONFIG.endpoints[endpoint];
+}
+
+// Helper function for fetch with ngrok header
+function apiFetch(url, options = {}) {
+    const headers = {
+        'ngrok-skip-browser-warning': 'true',
+        ...options.headers
+    };
+    return fetch(url, { ...options, headers });
 }

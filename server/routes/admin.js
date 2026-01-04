@@ -43,7 +43,10 @@ router.get('/stats', async (req, res) => {
 
         // Calculate top performers
         const employeePerformance = employees.map(emp => {
-            const empOrders = allOrders.filter(o => o.employeeId && o.employeeId.toString() === emp._id.toString());
+            const empOrders = allOrders.filter(o => {
+                const orderId = o.employeeId ? o.employeeId.toString() : null;
+                return orderId === emp._id.toString();
+            });
             const empCompleted = empOrders.filter(o => o.status === 'completed').length;
             return {
                 name: emp.name,
@@ -110,11 +113,11 @@ router.get('/employee-stats', async (req, res) => {
         const employees = await Employee.find();
         const allOrders = await Order.find();
 
+        // Use UTC date to match how orders are created
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
         const todayStr = today.toISOString().split('T')[0];
-        const currentMonth = today.getMonth();
-        const currentYear = today.getFullYear();
+        const currentMonth = today.getUTCMonth();
+        const currentYear = today.getUTCFullYear();
 
         // Filter orders by period
         let filteredOrders = allOrders;
@@ -122,20 +125,26 @@ router.get('/employee-stats', async (req, res) => {
             filteredOrders = allOrders.filter(o => o.date === todayStr);
         } else if (period === 'month') {
             filteredOrders = allOrders.filter(order => {
-                const orderDate = new Date(order.date);
-                return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;
+                const orderDate = new Date(order.date + 'T00:00:00Z');
+                return orderDate.getUTCMonth() === currentMonth && orderDate.getUTCFullYear() === currentYear;
             });
         }
 
         const employeeStats = employees.map(emp => {
-            const empOrders = filteredOrders.filter(o => o.employeeId.toString() === emp._id.toString());
+            const empOrders = filteredOrders.filter(o => {
+                const orderId = o.employeeId ? o.employeeId.toString() : null;
+                return orderId === emp._id.toString();
+            });
             const completed = empOrders.filter(o => o.status === 'completed').length;
             const pending = empOrders.filter(o => o.status === 'pending').length;
             const cancelled = empOrders.filter(o => o.status === 'cancelled').length;
             const successRate = empOrders.length > 0 ? Math.round((completed / empOrders.length) * 100) : 0;
 
             // Get last activity
-            const empAllOrders = allOrders.filter(o => o.employeeId.toString() === emp._id.toString());
+            const empAllOrders = allOrders.filter(o => {
+                const orderId = o.employeeId ? o.employeeId.toString() : null;
+                return orderId === emp._id.toString();
+            });
             const lastActivity = empAllOrders.length > 0
                 ? empAllOrders.sort((a, b) => new Date(b.date + ' ' + b.time) - new Date(a.date + ' ' + a.time))[0].date
                 : 'Never';

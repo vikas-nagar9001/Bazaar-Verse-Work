@@ -89,7 +89,7 @@ async function getNumber() {
         }
         console.error('Error:', error);
     } finally {
-        setButtonLoading(btn, false, '🚀 Get India Number Now');
+        setButtonLoading(btn, false, '🚀 Get Number Now');
     }
 }
 
@@ -601,26 +601,23 @@ function highlightOrder(orderId) {
 
 function playSuccessSound() {
     try {
-        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLaiTcIGWi77eefTRAMUKfj8LZjHAY4ktfyy3ksBSR3x/DdkEAKFF606OumUxQKRp/g8r5sIQUrgs7y2ok3CBlou+3nn00QDFC');
-        audio.volume = 0.3;
+        const audio = new Audio('../assets/sounds/number-buyed.wav');
+        audio.volume = 0.5;
         audio.play().catch(() => {});
-    } catch (e) {}
+    } catch (e) {
+        console.error('Failed to play success sound:', e);
+    }
 }
 
 function playNotificationSound() {
     try {
-        // Play a more noticeable notification sound for SMS received
-        const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLaiTcIGWi77eefTRAMUKfj8LZjHAY4ktfyy3ksBSR3x/DdkEAKFF606OumUxQKRp/g8r5sIQUrgs7y2ok3CBlou+3nn00QDFC');
-        audio.volume = 0.8; // Louder for notification
+        // Play SMS received notification sound
+        const audio = new Audio('../assets/sounds/sms-received.wav');
+        audio.volume = 0.7;
         audio.play().catch(() => {});
-        
-        // Play twice for emphasis
-        setTimeout(() => {
-            const audio2 = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLaiTcIGWi77eefTRAMUKfj8LZjHAY4ktfyy3ksBSR3x/DdkEAKFF606OumUxQKRp/g8r5sIQUrgs7y2ok3CBlou+3nn00QDFC');
-            audio2.volume = 0.8;
-            audio2.play().catch(() => {});
-        }, 200);
-    } catch (e) {}
+    } catch (e) {
+        console.error('Failed to play notification sound:', e);
+    }
 }
 
 window.addEventListener('beforeunload', () => {
