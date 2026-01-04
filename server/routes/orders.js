@@ -8,6 +8,51 @@ const mongoose = require('mongoose');
 const API_KEY = process.env.NUMERASMS_API_KEY;
 const API_BASE_URL = process.env.NUMERASMS_API_URL;
 
+// Puppeteer browser instance (reuse to save resources)
+let browserInstance = null;
+
+// Get or create browser instance
+async function getBrowser() {
+    if (!browserInstance || !(await browserInstance.isConnected())) {
+        browserInstance = await puppeteer.launch({
+            args: chromium.args,
+            defaultViewport: chromium.defaultViewport,
+            executablePath: await chromium.executablePath(),
+            headless: chromium.headless,
+        });
+    }
+    return browserInstance;
+}
+
+// Puppeteer wrapper for Numera API calls (bypasses Cloudflare)
+const numeraAPICall = async (url) => {
+    const browser = await getBrowser();
+    const page = await browser.newPage();
+    
+    try {
+        // Set realistic viewport
+        await page.setViewport({ width: 1920, height: 1080 });
+        
+        // Navigate to the API URL
+        await page.goto(url, { 
+            waitUntil: 'networkidle2',
+            timeout: 30000 
+        });
+        
+        // Wait a bit for any JS to execute
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Get the response text
+        const responseText = await page.evaluate(() => document.body.innerText);
+        
+        await page.close();
+        return responseText;
+    } catch (error) {
+        await page.close();
+        throw error;
+    }
+};
+
 // Get all orders (with optional filters)
 router.get('/', async (req, res) => {
     try {
@@ -149,8 +194,8 @@ router.get('/check-sms/:orderId', async (req, res) => {
 
         // Call NumeraSMS API to check SMS
         const url = `${API_BASE_URL}?api_key=${API_KEY}&action=getStatus&id=${orderId}`;
-        const response = await axios.get(url);
-        const data = response.data;
+        const response = await numeraAPICall(url);
+        const data = response;
 
         if (data.startsWith('STATUS_OK')) {
             // Parse response: STATUS_OK:smsCode
@@ -215,8 +260,8 @@ router.post('/cancel/:orderId', async (req, res) => {
 
         // Call NumeraSMS API to cancel
         const url = `${API_BASE_URL}?api_key=${API_KEY}&action=setStatus&status=8&id=${orderId}`;
-        const response = await axios.get(url);
-        const data = response.data;
+        const response = await numeraAPICall(url);
+        const data = response;
 
         if (data === 'ACCESS_CANCEL' || data === 'ACCESS_CANCEL_ALREADY') {
             // Update order in database

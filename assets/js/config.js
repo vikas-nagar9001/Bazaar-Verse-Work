@@ -6,7 +6,7 @@ const API_CONFIG = {
     BASE_URL: 'https://n2hz3nb5-3000.inc1.devtunnels.ms/api',
 
     // API Endpoints
-    endpoints: {
+    endpoints: {                    
         // Auth
         employeeLogin: '/auth/employee/login',
         adminLogin: '/auth/admin/login',
