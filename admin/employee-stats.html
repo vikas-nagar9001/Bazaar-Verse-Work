@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" x-data="{ darkMode: false, sidebarOpen: false }" :class="{ 'dark': darkMode }">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Statistics - Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/dark-mode.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900">
+    <div class="flex h-screen">
+        <!-- Mobile sidebar backdrop -->
+        <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 z-10 bg-black bg-opacity-50 md:hidden" x-cloak></div>
+        
+        <!-- Sidebar -->
+        <aside class="z-20 flex-shrink-0 w-64 overflow-y-auto bg-white dark:bg-gray-800 md:block fixed md:relative inset-y-0 left-0 transform transition-transform duration-200 ease-in-out" :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'">
+            <div class="py-4 text-gray-500 dark:text-gray-400">
+                <a class="ml-6 text-lg font-bold text-gray-800 dark:text-gray-200" href="index.html">
+                    Admin Panel
+                </a>
+                <ul class="mt-6">
+                    <li class="relative px-6 py-3">
+                        <a class="inline-flex items-center w-full text-sm font-semibold transition-colors duration-150 hover:text-gray-800 dark:hover:text-gray-200" href="index.html">
+                            <span class="ml-4">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="relative px-6 py-3">
+                        <a class="inline-flex items-center w-full text-sm font-semibold transition-colors duration-150 hover:text-gray-800 dark:hover:text-gray-200" href="employees.html">
+                            <span class="ml-4">Manage Employees</span>
+                        </a>
+                    </li>
+                    <li class="relative px-6 py-3">
+                        <span class="absolute inset-y-0 left-0 w-1 bg-purple-600 rounded-tr-lg rounded-br-lg"></span>
+                        <a class="inline-flex items-center w-full text-sm font-semibold text-gray-800 transition-colors duration-150 hover:text-gray-800 dark:hover:text-gray-200 dark:text-gray-100" href="employee-stats.html">
+                            <span class="ml-4">Employee Stats</span>
+                        </a>
+                    </li>
+                    <li class="relative px-6 py-3">
+                        <a class="inline-flex items-center w-full text-sm font-semibold transition-colors duration-150 hover:text-gray-800 dark:hover:text-gray-200" href="all-orders.html">
+                            <span class="ml-4">All Orders</span>
+                        </a>
+                    </li>
+                    <li class="relative px-6 py-3">
+                        <button onclick="adminLogout()" class="inline-flex items-center w-full text-sm font-semibold transition-colors duration-150 hover:text-gray-800 dark:hover:text-gray-200">
+                            <span class="ml-4">Logout</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <div class="flex flex-col flex-1 w-full">
+            <!-- Header -->
+            <header class="z-10 py-4 bg-white shadow-md dark:bg-gray-800">
+                <div class="container flex items-center justify-between h-full px-3 sm:px-6 mx-auto text-purple-600 dark:text-purple-300">
+                    <div class="flex items-center gap-3">
+                        <!-- Mobile menu button -->
+                        <button @click="sidebarOpen = !sidebarOpen" class="p-2 -ml-2 rounded-md md:hidden hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <svg class="w-6 h-6 text-gray-700 dark:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                        </button>
+                        <h2 class="text-base sm:text-2xl font-semibold text-gray-700 dark:text-gray-200">Employee Statistics</h2>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main -->
+            <main class="h-full overflow-y-auto">
+                <div class="container px-6 mx-auto grid">
+                    <!-- Filter -->
+                    <div class="my-6 flex gap-4">
+                        <select id="period-filter" onchange="filterStats()" class="px-4 py-2 text-sm border-gray-300 rounded-md dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                            <option value="today">Today</option>
+                            <option value="month">This Month</option>
+                            <option value="all">All Time</option>
+                        </select>
+                    </div>
+
+                    <!-- Employee Stats Table -->
+                    <div class="w-full mb-8 overflow-hidden rounded-lg shadow-xs">
+                        <div class="w-full overflow-x-auto">
+                            <table class="w-full whitespace-no-wrap">
+                                <thead>
+                                    <tr class="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800">
+                                        <th class="px-4 py-3">Employee Name</th>
+                                        <th class="px-4 py-3">Total Orders</th>
+                                        <th class="px-4 py-3">Completed</th>
+                                        <th class="px-4 py-3">Pending</th>
+                                        <th class="px-4 py-3">Cancelled</th>
+                                        <th class="px-4 py-3">Success Rate</th>
+                                        <th class="px-4 py-3">Last Activity</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stats-tbody" class="bg-white divide-y dark:divide-gray-700 dark:bg-gray-800">
+                                    <tr>
+                                        <td colspan="7" class="px-4 py-3 text-sm text-center text-gray-500 dark:text-gray-400">
+                                            Loading statistics...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Summary Cards -->
+                    <h3 class="mb-4 text-lg font-semibold text-gray-600 dark:text-gray-300">Period Summary</h3>
+                    <div class="grid gap-6 mb-8 md:grid-cols-4">
+                        <div class="flex items-center p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800">
+                            <div>
+                                <p class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">Total Orders</p>
+                                <p class="text-lg font-semibold text-gray-700 dark:text-gray-200" id="summary-total">0</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800">
+                            <div>
+                                <p class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">Completed</p>
+                                <p class="text-lg font-semibold text-green-700 dark:text-green-400" id="summary-completed">0</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800">
+                            <div>
+                                <p class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">Pending</p>
+                                <p class="text-lg font-semibold text-blue-700 dark:text-blue-400" id="summary-pending">0</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center p-4 bg-white rounded-lg shadow-xs dark:bg-gray-800">
+                            <div>
+                                <p class="mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">Average Success</p>
+                                <p class="text-lg font-semibold text-gray-700 dark:text-gray-200" id="summary-success">0%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="../assets/js/config.js"></script>
+    <script src="../assets/js/admin/auth.js"></script>
+    <script src="../assets/js/admin/employee-stats.js"></script>
+</body>
+</html>
